@@ -1,0 +1,25 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# ML artifacts & generated data
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# Output directories (generated at runtime)
+plots/
+results/
+
+# OS & editor
+.DS_Store
+.idea/
+.vscode/

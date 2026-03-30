@@ -1,0 +1,26 @@
+[project]
+name = "sae-interpretability"
+version = "0.1.0"
+description = "Mechanistic Interpretability with Sparse Autoencoders on Qwen2.5-1.5B"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.1.0",
+    "transformers>=4.40.0",
+    "datasets>=2.18.0",
+    "accelerate>=0.28.0",
+    "einops>=0.7.0",
+    "numpy>=1.26.0",
+    "pandas>=2.2.0",
+    "scikit-learn>=1.4.0",
+    "tqdm>=4.66.0",
+    "matplotlib>=3.8.0",
+    "seaborn>=0.13.0",
+    "plotly>=5.20.0",
+]
+
+[tool.uv]
+# Use a virtual environment in .venv/
+venv = ".venv"
+
+[project.scripts]
+run-pipeline = "main:main"
