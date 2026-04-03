@@ -24,7 +24,8 @@ class FeatureExtractor:
         Returns the token IDs, their decoded text, and activation strength for each.
         """
         # Get feature activations for all tokens: [num_tokens, feature_dim]
-        feature_activations = self.sae.get_feature_activations(activations)
+        device = next(self.sae.parameters()).device
+        feature_activations = self.sae.get_feature_activations(activations.to(device, dtype=torch.float32))
         
         # Get activations for the target feature: [num_tokens]
         target_feature_acts = feature_activations[:, feature_idx]

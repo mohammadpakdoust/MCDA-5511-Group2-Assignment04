@@ -49,7 +49,7 @@ class SAETrainer:
             
             pbar = tqdm(train_loader, desc=f"Epoch {epoch+1}/{epochs}")
             for batch in pbar:
-                x = batch[0].to(self.device)
+                x = batch[0].to(self.device, dtype=torch.float32)
                 
                 # Forward pass
                 _, total_loss, mse, l1, _ = self.model(x)
@@ -59,8 +59,6 @@ class SAETrainer:
                 total_loss.backward()
                 self.optimizer.step()
                 
-                # Post-step normalization of decoder weights
-                self.model.normalize_decoder_weights()
                 
                 train_total_loss += total_loss.item()
                 pbar.set_postfix({"loss": total_loss.item(), "mse": mse.item(), "l1": l1.item()})
@@ -92,7 +90,7 @@ class SAETrainer:
         self.model.eval()
         total_loss = 0
         for batch in loader:
-            x = batch[0].to(self.device)
+            x = batch[0].to(self.device, dtype=torch.float32)
             _, loss, _, _, _ = self.model(x)
             total_loss += loss.item()
         return total_loss / len(loader)

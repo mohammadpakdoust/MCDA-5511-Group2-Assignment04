@@ -8,6 +8,7 @@ from sae.train_sae import SAETrainer
 from features.feature_extractor import FeatureExtractor
 from features.feature_analyzer import FeatureAnalyzer
 from features.intervention import InterventionHandler
+from features.automated_interpretability import AutomatedInterpretor
 from utils.helpers import ensure_dirs, plot_training_curves
 
 def parse_args():
@@ -55,7 +56,9 @@ def main():
         trainer.save_model(sae_path)
         plot_training_curves(trainer.history)
     else:
-        sae.load_state_dict(torch.load(sae_path, map_location=device))
+        state_dict = torch.load(sae_path, map_location=device)
+        state_dict.pop("W_dec", None)
+        sae.load_state_dict(state_dict)
         sae.to(device)
     
     # 4. Feature Extraction & Analysis
@@ -67,14 +70,22 @@ def main():
         for feat in top_features:
             analyzer.display_feature(feat)
     
-    # 5. Causal Intervention
+    # 5. Automated Interpretability (Clustering)
+    if not args.train_only:
+        auto_interp = AutomatedInterpretor(sae)
+        clusters = auto_interp.cluster_and_visualize(n_clusters=10)
+        print("\nCluster Assignment Summaries:")
+        for cid in range(min(3, len(clusters))):
+            print(f" - Cluster {cid}: {len(clusters[cid])} features (e.g. {clusters[cid][:5]})")
+
+    # 6. Causal Intervention
     if not args.train_only:
         print("\n--- Running Causal Intervention ---")
         intervention = InterventionHandler(model_wrapper, sae, args.layer_idx)
         
-        # Test finding: Try feature 0 (just as an example, in practice pick an interpretable one)
+        # Test finding: Clamping Feature 12 (Numeric/Quantitative Pattern) as documented in the report
         test_prompt = "The capital of France is"
-        res = intervention.run_intervention(test_prompt, feature_idx=0, clamped_value=20.0)
+        res = intervention.run_intervention(test_prompt, feature_idx=12, clamped_value=20.0)
         
         print(f"Prompt: {res['prompt']}")
         print(f"Baseline: {res['baseline']}")

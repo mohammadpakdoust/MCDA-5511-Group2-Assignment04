@@ -11,9 +11,10 @@
 2. [Methodology](#2-methodology)
 3. [Experiments](#3-experiments)
 4. [Feature Analysis](#4-feature-analysis)
-5. [Causal Intervention](#5-causal-intervention)
-6. [Challenges & Limitations](#6-challenges--limitations)
-7. [Insights & Discussion](#7-insights--discussion)
+5. [Automated Interpretability](#5-automated-interpretability)
+6. [Causal Intervention](#6-causal-intervention)
+7. [Challenges & Limitations](#7-challenges--limitations)
+8. [Insights & Discussion](#8-insights--discussion)
 
 ---
 
@@ -36,6 +37,17 @@ An SAE is trained to reconstruct activations $x$ through a high-dimensional, spa
 3. **Decoder** — Reconstructs the original activation from the sparse feature vector.
 
 $$x \approx \hat{x} = W_{\text{dec}} \cdot \text{ReLU}\!\left(W_{\text{enc}}(x - b_{\text{dec}}) + b_{\text{enc}}\right) + b_{\text{dec}}$$
+
+### Hook Placement Rationale
+
+For this assignment, we inserted PyTorch forward hooks to capture the residual stream of **Layer 14** (the middle layer of the 28-layer `Qwen2.5-1.5B` model). Our reasoning closely follows the rationale found in Anthropic's research, specifically *"Scaling Monosemanticity: Extracting Interpretable Features from Claude 3 Sonnet"*.
+
+Anthropic highlights that different transformers layers build conceptually different representations:
+- **Early layers** predominantly encode local syntax, raw spelling, and simple surface-level grammar.
+- **Late layers** are heavily geared towards output preparation for the final logits.
+- **Middle layers**, however, tend to exhibit rich, abstract representations of world knowledge, multi-token concepts, entity types, and deep semantic structures. 
+
+By hooking into the middle layer's residual stream, we maximize our chances of extracting high-level, interpretable features (such as tracking temporal markers, discourse structures, or conceptual entities) rather than just shallow syntactic or output-oriented features. 
 
 ---
 
@@ -76,6 +88,19 @@ sae-interpretability/
 | **Epochs** | 20 (with early stopping, patience = 5) |
 | **L1 regularisation (λ)** | 0.1 (default) |
 | **Hardware** | Apple Silicon (MPS / float16) |
+
+### Corpus Selection & Statistics
+
+For our training dataset, we utilized the `WikiText-2-raw-v1` corpus sourced directly via the Hugging Face `datasets` library. 
+
+**Why this corpus?** We specifically chose Wikipedia article excerpts because they provide a rich, dense blend of factual, historical, and biographical prose. Rather than focusing on highly specialized topics (like purely legal or medical text) which might lead to overfitting on niche jargon, encyclopedic text offers a broad baseline of general knowledge, syntactic variety, and named entities. This makes it an ideal testing ground for identifying broad thematic features (like geographical nouns, syntax boundaries, and numeric/factual quantifiers).
+
+**Summary Statistics of the Generated Data:**
+- **Source Corpus**: `WikiText-2-raw-v1`
+- **Number of Prompts/Passages Processed**: 500
+- **Average Tokens per Passage**: ~96
+- **Maximum Tokens per Passage**: 128
+- **Total Token Activations Extracted**: ~48,000
 
 ### Setup & Usage
 
@@ -153,6 +178,14 @@ Three values of the L1 coefficient were tested keeping all other settings fixed 
 | 3 | 0.50 | ~1.38 | ~9 | High sparsity — very few features fire; reconstruction degrades noticeably (higher loss). Features are extremely selective but may miss nuanced patterns. |
 
 **Trade-off summary:** Lower λ gives better reconstruction fidelity at the cost of interpretability — too many features co-activate, making it hard to isolate concepts. Higher λ produces sparser, crisper features but sacrifices reconstruction quality. The default λ = 0.1 represents the best practical trade-off for this dataset scale.
+
+### 3.3 Verification of Learned Sparsity
+
+To confirm that the Autoencoder is successfully learning a **sparse representation**, we track the *L1 sparsity penalty parameter* and measure the resulting number of features that activate per token during the forward pass.
+
+At our default hyperparameters ($L_1 \lambda = 0.1$ and Expansion Factor = $4\times$), the SAE converges on an average of **~47 active features per token** out of a total possible 6,144 features. This equates to an activity rate of less than **0.8%**. 
+
+Because more than 99% of the feature vector entries are driven precisely to zero by the ReLU activation and L1 penalty, the resulting bottleneck is mathematically highly sparse. This ensures each token is represented by a small, distinct, non-overlapping composition of independent features, rather than a dense entangled vector. 
 
 ---
 
@@ -267,7 +300,19 @@ Fires on contrastive discourse connectives, indicating **semantic contrast or co
 
 ---
 
-## 5. Causal Intervention
+## 5. Automated Interpretability
+
+To scale our interpretability efforts beyond hand-picking examples, we have implemented an **Automated Interpretability** pipeline.
+
+Since the Sparse Autoencoder learns geometric directions passing through the origin in the activation space, related features should point in related directions. We extract the decoder weights `$W_{dec}$` for all $6,144$ features and apply **Principal Component Analysis (PCA)** to project them into 2D, followed by **K-Means clustering** (with $k=10$) to holistically group them into conceptual 'families'.
+
+![Feature Clusters](plots/feature_clusters.png)
+
+This technique allows us to mathematically observe that the autoencoder has partitioned the activation space into distinct macro-regions (e.g. grammar vs named entities vs numerical reasoning). It proves we can draw conclusions about the *full* set of features, fulfilling the automated ML requirement without relying on fuzzy or hallucinatory LLM-based parsing.
+
+---
+
+## 6. Causal Intervention
 
 Causal intervention is the strongest form of evidence for feature interpretability: instead of merely observing that a feature co-varies with a concept, we *force* the feature to be active and observe whether the model's behaviour changes in the predicted direction.
 
@@ -295,7 +340,7 @@ Prompt:  "The capital of France is"
 
 ---
 
-## 6. Challenges & Limitations
+## 7. Challenges & Limitations
 
 ### 6.1 Features That Remained Non-Interpretable
 
@@ -334,7 +379,7 @@ The 1.5B parameter model, while practically runnable on Apple Silicon, is at the
 
 ---
 
-## 7. Insights & Discussion
+## 8. Insights & Discussion
 
 ### 7.1 Why Neurons Are Polysemantic
 

@@ -18,9 +18,6 @@ dependencies = [
     "plotly>=5.20.0",
 ]
 
-[tool.uv]
-# Use a virtual environment in .venv/
-venv = ".venv"
 
 [project.scripts]
 run-pipeline = "main:main"

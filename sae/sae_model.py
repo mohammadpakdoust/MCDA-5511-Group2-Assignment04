@@ -24,22 +24,15 @@ class SparseAutoencoder(nn.Module):
         self.W_enc = nn.Parameter(torch.empty(input_dim, hidden_dim))
         self.b_enc = nn.Parameter(torch.zeros(hidden_dim))
         
-        # Decoder weights
-        self.W_dec = nn.Parameter(torch.empty(hidden_dim, input_dim))
-        
-        # Tie weights: self.W_dec.data = self.W_enc.data.T
-        # We initialize them using Kaiming normal
         nn.init.kaiming_normal_(self.W_enc)
-        self.W_dec.data = self.W_enc.data.T
         
-        # Standardize decoder weights to have unit norm
-        self.normalize_decoder_weights()
-
-    def normalize_decoder_weights(self):
-        """Normalize decoder weights to unit norm."""
-        with torch.no_grad():
-            norms = torch.norm(self.W_dec, dim=1, keepdim=True)
-            self.W_dec.data /= (norms + 1e-8)
+    @property
+    def W_dec(self):
+        """
+        Strictly tied weights: Decoder matrix is the normalized transpose of the encoder matrix.
+        Normalization prevents the model from artificially reducing sparsity loss by shrinking features and scaling up decoder weights.
+        """
+        return F.normalize(self.W_enc.t(), p=2, dim=1)
 
     def encode(self, x: torch.Tensor) -> torch.Tensor:
         """Subtract decoder bias and project to hidden space with ReLU."""
