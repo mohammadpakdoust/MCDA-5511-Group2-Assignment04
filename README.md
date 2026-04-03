@@ -3,6 +3,11 @@
 > **MCDA-5511 · Assignment 04 · Group 2**
 > Probing the residual stream of `Qwen2.5-1.5B` with a trained Sparse Autoencoder to discover and causally test interpretable features.
 
+**Team Members:**
+- Mohammad Pakdoust
+- MD Musfiqur Rahman
+- Krushi Mistry
+
 ---
 
 ## Table of Contents
