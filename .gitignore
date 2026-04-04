@@ -16,8 +16,7 @@ wheels/
 *.safetensors
 
 # Output directories (generated at runtime)
-plots/*
-!plots/feature_clusters.png
+plots/
 results/
 
 # OS & editor
@@ -27,3 +26,4 @@ results/
 
 # Presentation Documents
 Presentation_Script.md
+print-data.py
