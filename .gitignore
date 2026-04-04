@@ -16,10 +16,14 @@ wheels/
 *.safetensors
 
 # Output directories (generated at runtime)
-plots/
+plots/*
+!plots/feature_clusters.png
 results/
 
 # OS & editor
 .DS_Store
 .idea/
 .vscode/
+
+# Presentation Documents
+Presentation_Script.md
