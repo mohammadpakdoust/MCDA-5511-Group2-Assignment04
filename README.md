@@ -23,7 +23,22 @@
 
 ---
 
-## 1. Introduction
+## 📋 Grading Rubric Mapping
+
+To assist with grading, the following table maps the specific assignment requirements to their corresponding sections within this report:
+
+| Requirement | Corresponding Section |
+|---|---|
+| **Question 1:** Modular code design and pipeline | [2. Methodology](#2-methodology-) |
+| **Question 2:** Dataset generating, prompt selection, stats | [3. Experiments (Corpus Selection)](#corpus-selection--statistics-) |
+| **Question 3:** SAE framework, tie-weights, early stopping, sparsity | [1. Introduction](#1-introduction-) & [3.3 Verification](#33-verification-of-learned-sparsity) |
+| **Question 4:** Manual feature extraction & interpretation | [4. Feature Analysis](#4-feature-analysis-) |
+| **Question 5 (Bonus):** Automated machine learning clustering | [5. Automated Interpretability](#5-automated-interpretability-) |
+| **Question 6:** Intervention / counterfactual clamping | [6. Causal Intervention](#6-causal-intervention-) |
+
+---
+
+## 1. Introduction 📌 *(Answers Q3)*
 
 ### What is Activation Space?
 
@@ -56,7 +71,7 @@ By hooking into the middle layer's residual stream, we maximize our chances of e
 
 ---
 
-## 2. Methodology
+## 2. Methodology 📌 *(Answers Q1)*
 
 ### Project Structure
 
@@ -94,7 +109,7 @@ sae-interpretability/
 | **L1 regularisation (λ)** | 0.1 (default) |
 | **Hardware** | Apple Silicon (MPS / float16) |
 
-### Corpus Selection & Statistics
+### Corpus Selection & Statistics 📌 *(Answers Q2)*
 
 For our training dataset, we utilized the `WikiText-2-raw-v1` corpus sourced directly via the Hugging Face `datasets` library. 
 
@@ -194,7 +209,7 @@ Because more than 99% of the feature vector entries are driven precisely to zero
 
 ---
 
-## 4. Feature Analysis
+## 4. Feature Analysis 📌 *(Answers Q4)*
 
 The `FeatureAnalyzer` scores all 6 144 SAE features by their maximum activation strength across the training corpus, then returns the top-activating token contexts for each. Below we report five features that showed consistent, interpretable patterns.
 
@@ -305,7 +320,7 @@ Fires on contrastive discourse connectives, indicating **semantic contrast or co
 
 ---
 
-## 5. Automated Interpretability
+## 5. Automated Interpretability 📌 *(Answers Q5 Bonus)*
 
 To scale our interpretability efforts beyond hand-picking examples, we have implemented an **Automated Interpretability** pipeline.
 
@@ -317,7 +332,7 @@ This technique allows us to mathematically observe that the autoencoder has part
 
 ---
 
-## 6. Causal Intervention
+## 6. Causal Intervention 📌 *(Answers Q6)*
 
 Causal intervention is the strongest form of evidence for feature interpretability: instead of merely observing that a feature co-varies with a concept, we *force* the feature to be active and observe whether the model's behaviour changes in the predicted direction.
 
