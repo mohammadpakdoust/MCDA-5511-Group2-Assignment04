@@ -49,6 +49,8 @@ class AutomatedInterpretor:
         plt.grid(True, alpha=0.3)
         
         plt.savefig(save_path)
+        input("\n[DEMO] Press ENTER to display the Feature Clusters graph...")
+        plt.show(block=True)
         plt.close()
         print(f"Feature clusters visualization saved to {save_path}")
         
